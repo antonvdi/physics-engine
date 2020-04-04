@@ -1,7 +1,7 @@
 # cd C:\Users\anton_mc03yx6\Documents\GitHub\physics_engine
 
 import pygame
-import time
+import time, math
 
 pygame.init()
 width = 700
@@ -31,7 +31,7 @@ class Object:
 		self.last_update = time.time()
 
 	def update(self):
-		delta_time = (time.time()-self.last_update)*5
+		delta_time = (time.time()-self.last_update)*7
 		self.velocity_horizontal += self.acceleration_horizontal*delta_time
 		self.velocity_vertical += self.acceleration_vertical*delta_time
 		self.position_horizontal += self.velocity_horizontal*delta_time
@@ -72,11 +72,39 @@ def main():
 		object2.update()
 		object1.wallcollision()
 		object2.wallcollision()
+		collision_circle(object1, object2)
 		
 		
 		pygame.display.flip()
 
 def collision_circle(circle1, circle2):
-	pass
+	#the vector in between the two circles, cartesian coordinates
+	position_vector_horizontal = circle2.position_horizontal - circle1.position_horizontal
+	position_vector_vertical = circle2.position_vertical - circle2.position_vertical
+
+	#polar coordinates
+	position_vector_length = math.sqrt((position_vector_horizontal)**2+(position_vector_vertical)**2)
+	position_vector_direction = math.atan(position_vector_vertical/position_vector_horizontal)
+
+	#calculate new velocities
+	if position_vector_length <= circle1.size + circle2.size:
+		tangent_vector_horizontal = position_vector_horizontal
+		tangent_vector_vertical = -position_vector_vertical
+
+		tangent_vector_length = math.sqrt(tangent_vector_horizontal**2+tangent_vector_vertical**2)
+		tangent_vector_direction = math.acos((tangent_vector_horizontal*position_vector_horizontal+tangent_vector_vertical*position_vector_vertical)/(position_vector_length*tangent_vector_length))
+
+		#tangent and velocity
+		approach_direction1 = (circle1.velocity_horizontal*tangent_vector_horizontal+circle1.velocity_vertical*tangent_vector_vertical)/tangent_vector_length*math.sqrt((circle1.velocity_vertical)**2+(circle1.velocity_horizontal)**2)
+		approach_direction2 = (circle2.velocity_horizontal*tangent_vector_horizontal+circle2.velocity_vertical*tangent_vector_vertical)/tangent_vector_length*math.sqrt((circle2.velocity_vertical)**2+(circle2.velocity_horizontal)**2) 
+
+		reflection_direction1 = approach_direction1-2*math.pi
+		reflection_direction2 = approach_direction2-2*math.pi
+
+		circle1.velocity_horizontal = math.sqrt(circle1.velocity_horizontal**2+circle1.velocity_vertical**2) * math.cos(reflection_direction1)
+		circle2.velocity_horizontal = math.sqrt(circle2.velocity_horizontal**2+circle2.velocity_vertical**2) * math.cos(reflection_direction1)
+
+		circle1.velocity_vertical = math.sqrt(circle1.velocity_horizontal**2+circle1.velocity_vertical**2) * math.sin(reflection_direction1)
+		circle2.velocity_vertical = math.sqrt(circle2.velocity_horizontal**2+circle2.velocity_vertical**2) * math.sin(reflection_direction1)
 
 main()

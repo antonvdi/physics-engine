@@ -77,7 +77,6 @@ def main():
 		collision_circle(object1, object2)
 		#collision_circle(object2, object1)
 		
-		
 		pygame.display.flip()
 
 def collision_circle(circle1, circle2):
